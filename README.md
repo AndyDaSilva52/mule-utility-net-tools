@@ -10,7 +10,7 @@ This supports HTTP and HTTPS connections with a configurable port for each.
 - Ping
 - TraceRoute
 - Opening a TCP socket
-- Simple curl request
+- Simple curl GET request
 - Pull SSL certificates
 - Check supported ciphers for a given SSL/TLS endpoint
 
@@ -51,6 +51,6 @@ The properties below can be set on the app to override the default settings.  Th
 
 # Maintenance
 This uses the JS libraries below.
-- jQuery 1.11.3 [min](https://code.jquery.com/jquery-1.11.3.min.js) and [map](https://code.jquery.com/jquery-1.11.3.min.map).
+- jQuery 1.12.4 [min](https://code.jquery.com/jquery-1.12.4.min.js) and [map](https://code.jquery.com/jquery-1.12.4.min.map).
 - [Toastr](https://github.com/CodeSeven/toastr) 2.1.4 [min, map, and css](https://cdnjs.com/libraries/toastr.js).
 
