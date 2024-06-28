@@ -16,7 +16,7 @@ This supports HTTP and HTTPS connections with a configurable port for each.
 
 ## Latest build
 
-Latest build can be found here: https://github.com/mulesoft-labs/net-tools-api/releases
+Latest build can be found here: https://github.com/mulesoft-catalyst/mulesoft-net-tools/releases
 
 # Usage
 
@@ -54,3 +54,7 @@ This uses the JS libraries below.
 - jQuery 1.12.4 [min](https://code.jquery.com/jquery-1.12.4.min.js) and [map](https://code.jquery.com/jquery-1.12.4.min.map).
 - [Toastr](https://github.com/CodeSeven/toastr) 2.1.4 [min, map, and css](https://cdnjs.com/libraries/toastr.js).
 
+# Contributors
+
+- Jorge Luis García Pérez - Mule 3 version creator and maintainer 
+- Facundo Lopez Kaufmann - Mule 4 upgrade
