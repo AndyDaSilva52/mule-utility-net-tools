@@ -12,10 +12,16 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<app.runtime>4.6.0</app.runtime>
-		<mule.maven.plugin.version>4.2.0</mule.maven.plugin.version>
-		<spring.version>5.3.37</spring.version>
-		<spring-security.version>5.8.13</spring-security.version>
+
+		<app.runtime>4.9.0</app.runtime>
+		<mule.maven.plugin.version>4.3.1</mule.maven.plugin.version>
+		<mule.apikit.module.version>1.11.7</mule.apikit.module.version>
+		<mule.http.connector.version>1.10.5</mule.http.connector.version>
+		<mule.sockets.connector.version>1.2.6</mule.sockets.connector.version>
+		<mule.spring.module.version>2.0.0</mule.spring.module.version>
+
+		<spring.version>5.3.39</spring.version>
+		<spring-security.version>5.8.16</spring-security.version>
 	</properties>
 
 	<build>
@@ -83,19 +89,19 @@
 		<dependency>
 			<groupId>org.mule.modules</groupId>
 			<artifactId>mule-apikit-module</artifactId>
-			<version>1.10.4</version>
+			<version>${mule.apikit.module.version}</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-http-connector</artifactId>
-			<version>1.9.3</version>
+			<version>${mule.http.connector.version}</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.mule.modules</groupId>
 			<artifactId>mule-spring-module</artifactId>
-			<version>1.4.0</version>
+			<version>${mule.spring.module.version}</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 	</dependencies>

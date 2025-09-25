@@ -13,9 +13,9 @@ securitySchemes:
       host:
         description: The domain or ip of the host to ping
         type: string
-    responses: 
+    responses:
       200:
-        body: 
+        body:
           text/plain:
             example: |
               PING localhost (127.0.0.1): 56 data bytes
@@ -38,9 +38,9 @@ securitySchemes:
       port:
         description: The port number of host to be tested
         type: number
-    responses: 
+    responses:
       200:
-        body: 
+        body:
           text/plain:
             example: |
               Connectivity is successful
@@ -51,9 +51,9 @@ securitySchemes:
       host:
         description: The domain or ip of the host to traceroute
         type: string
-    responses: 
+    responses:
       200:
-        body: 
+        body:
           text/plain:
             example: |
                1  216.182.237.132  1.203 ms 216.182.237.128  1.185 ms 216.182.237.132  1.681 ms
@@ -75,12 +75,12 @@ securitySchemes:
         description: The the fully qualified domain name the host to test
         type: string
       dnsServer:
-        description: The DNS server to use for resolution.        
+        description: The DNS server to use for resolution.
         type: string
         required: false
-    responses: 
+    responses:
       200:
-        body: 
+        body:
           text/plain:
             example: |
                127.0.0.1
@@ -90,19 +90,35 @@ securitySchemes:
     queryParameters:
       url:
         description: Target URL
-        type: string 
+        type: string
       header:
         required: false
         items:
           type: string
           example: |
             Authorization:Basic YQxhZGRpbjpvcGVuc2VzYW1l
-    responses: 
+    responses:
       200:
-        body: 
+        body:
           text/plain:
             example: |
-              curl: (7) Failed to connect to 10.200.27.15 port 443: Timed out             
+              curl: (7) Failed to connect to 10.200.27.15 port 443: Timed out
+  post:
+    description: Runs a curl(POST) from the Mule host to the specified resource
+    queryParameters:
+      url:
+        description: Target URL
+        type: string
+      header:
+        required: false
+        items:
+          type: string
+          example: |
+            Authorization:Basic YQxhZGRpbjpvcGVuc2VzYW1l
+    body:
+      text/plain:
+        description: Payload
+        type: string
 
 /ciphertest:
   get:
@@ -113,10 +129,10 @@ securitySchemes:
         type: string
       port:
         description: The port number of host to be tested
-        type: number        
-    responses: 
+        type: number
+    responses:
       200:
-        body: 
+        body:
           text/plain:
             example: List of supported ciphers...
 
@@ -129,9 +145,9 @@ securitySchemes:
         type: string
       port:
         description: The port number of host to be tested
-        type: number        
-    responses: 
+        type: number
+    responses:
       200:
-        body: 
+        body:
           text/plain:
             example: CONNECTED(00000005)
