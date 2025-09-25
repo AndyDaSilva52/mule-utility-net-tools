@@ -6,28 +6,6 @@ securitySchemes:
   basic:
     type: Basic Authentication
 
-/ping:
-  get:
-    description: Runs an ICMP test from the Mule host to the specified endpoint
-    queryParameters:
-      host:
-        description: The domain or ip of the host to ping
-        type: string
-    responses:
-      200:
-        body:
-          text/plain:
-            example: |
-              PING localhost (127.0.0.1): 56 data bytes
-              64 bytes from 127.0.0.1: icmp_seq=0 ttl=64 time=0.050 ms
-              64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.070 ms
-              64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.054 ms
-              64 bytes from 127.0.0.1: icmp_seq=3 ttl=64 time=0.046 ms
-
-              --- localhost ping statistics ---
-              4 packets transmitted, 4 packets received, 0.0% packet loss
-              round-trip min/avg/max/stddev = 0.046/0.055/0.070/0.009 ms
-
 /socket:
   get:
     description: Creates a TCP socket to test connectivity to an IP:Port combination
