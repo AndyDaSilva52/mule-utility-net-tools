@@ -17,4 +17,5 @@
       </ss:user-service>
     </ss:authentication-provider>
   </ss:authentication-manager>
+
 </beans>
