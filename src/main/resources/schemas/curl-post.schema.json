@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Curl POST Request",
+  "description": "JSON schema for validating the headers and query parameters of a POST request to /curl. Note: This does not validate the text/plain body.",
+  "type": "object",
+  "properties": {
+    "queryParameters": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "description": "Target URL",
+          "type": "string"
+        },
+        "header": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "url"
+      ]
+    },
+    "headers": {
+      "type": "object",
+      "description": "HTTP headers for the request. No specific headers are required for this endpoint.",
+      "properties": {},
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "queryParameters"
+  ]
+}
+

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+  xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+  xmlns:http="http://www.mulesoft.org/schema/mule/http"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+  xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+  xmlns="http://www.mulesoft.org/schema/mule/core"
+  xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+  xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+  <munit:config name="http-test-suite.xml" />
+
+
+  <munit:dynamic-port
+    propertyName="munit.dynamic.port"
+    min="6000"
+    max="7000" />
+
+  <http:listener-config name="MUnit_HTTP_Mock_Listener_config">
+    <http:listener-connection
+      host="localhost"
+      port="${munit.dynamic.port}" />
+  </http:listener-config>
+
+  <http:request-config name="MUnit_HTTP_Mock_Request_configuration">
+    <http:request-connection
+      host="localhost"
+      port="${munit.dynamic.port}" />
+  </http:request-config>
+
+
+
+  <flow name="http-test-suite.mock-http-error.listener">
+    <http:listener
+      config-ref="MUnit_HTTP_Mock_Listener_config"
+      path="/*">
+      <http:response
+        statusCode="#[(attributes.queryParams.statusCode default attributes.queryParams.httpStatus) default 200]"
+        reasonPhrase="#[attributes.queryParams.reasonPhrase]">
+        <http:headers><![CDATA[#[attributes.headers]]]></http:headers>
+      </http:response>
+      <http:error-response
+        statusCode="#[(attributes.queryParams.statusCode default attributes.queryParams.httpStatus) default 500]"
+        reasonPhrase="#[attributes.queryParams.reasonPhrase]">
+        <http:body><![CDATA[#[payload]]]></http:body>
+        <http:headers><![CDATA[#[attributes.headers]]]></http:headers>
+      </http:error-response>
+    </http:listener>
+
+    <logger
+      level="TRACE"
+      doc:name="doc: Listener Response will Return the payload/headers/http status for the respective request that was made to mock" />
+  </flow>
+
+  <flow name="http-test-suite.mock-http-error.request">
+    <try>
+      <http:request
+        config-ref="MUnit_HTTP_Mock_Request_configuration"
+        method="#[vars.munitHttp.method default 'GET']"
+        path="#[vars.munitHttp.path default '/']"
+        sendBodyMode="ALWAYS">
+        <http:body><![CDATA[#[vars.munitBody]]]></http:body>
+        <http:headers><![CDATA[#[vars.munitHttp.headers default {}]]]></http:headers>
+        <http:query-params><![CDATA[#[vars.munitHttp.queryParams default {}]]]></http:query-params>
+      </http:request>
+      <error-handler>
+        <on-error-propagate>
+          <remove-variable
+            doc:name="munitHttp"
+            variableName="munitHttp" />
+          <remove-variable
+            doc:name="munitBody"
+            variableName="munitBody" />
+        </on-error-propagate>
+      </error-handler>
+    </try>
+
+    <remove-variable
+      doc:name="munitHttp"
+      variableName="munitHttp" />
+    <remove-variable
+      doc:name="munitBody"
+      variableName="munitBody" />
+  </flow>
+  <flow name="http-test-suite.mock-http-error.template-for-then-call">
+    <ee:transform doc:name="munitHttp/java ; munitBody/json;">
+      <ee:message>
+      </ee:message>
+      <ee:variables>
+        <ee:set-variable variableName="munitHttp"><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-variable>
+        <ee:set-variable variableName="munitBody"><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-variable>
+      </ee:variables>
+    </ee:transform>
+    <flow-ref
+      doc:name="FlowRef Mock HTTP Error Request"
+      name="http-test-suite.mock-http-error.request" />
+  </flow>
+  <!-- -->
+  <!-- -->
+  <!-- -->
+  <munit:test name="http-test-suite.get:\curl:net-tools-config">
+    <munit:execution>
+      <http:request
+        method="GET"
+        doc:name="Request"
+        doc:id="d3df80e0-e251-4384-af64-6c19b16fc9d8"
+        config-ref="MUnit_HTTP_Request_configuration"
+        path="/curl">
+        <http:query-params><![CDATA[#[{
+	url: "localhost",
+	header: [
+		
+	]
+}]]]></http:query-params>
+      </http:request>
+    </munit:execution>
+  </munit:test>
+</mule>
