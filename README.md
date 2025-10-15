@@ -4,15 +4,34 @@ The Net Tools API is a deployable Mule app that you can deploy to CloudHub or an
 
 This supports HTTP and HTTPS connections with a configurable port for each.
 
+## Technical Stack
+
+- Mule Runtime: 4.9.x
+- Build Tool: Maven
+- Authentication: Basic Auth
+- API Specification: RAML 1.0
+- UI Dependencies: jQuery 1.12.4, Toastr 2.1.4
+
 ## Features
 
-- DNS lookups
-- Ping
-- TraceRoute
-- Opening a TCP socket
-- Simple curl GET request
-- Pull SSL certificates
-- Check supported ciphers for a given SSL/TLS endpoint
+### Network Diagnostic Tools
+- **DNS lookups**: Resolve hostnames using specified DNS servers
+- **Ping**: ICMP connectivity testing
+- **TraceRoute**: Network path analysis
+- **TCP Socket**: Test direct TCP connections
+- **Curl**: HTTP(S) requests with custom headers
+  - GET requests with optional headers
+  - POST requests with payload support
+- **SSL/TLS Tools**:
+  - Certificate inspection
+  - Cipher suite compatibility testing
+
+### Additional Features
+- Web-based UI for easy access
+- Secure authentication
+- Configurable HTTP/HTTPS ports
+- CloudHub 1.0/2.0 and RTF compatibility
+- Comprehensive error handling
 
 ## Latest build
 
@@ -25,24 +44,101 @@ The UI can be accessed by using the base URL for the app.  The options are liste
 - CloudHub Shared Load Balancer: `http://{app-name}.{region}.cloudhub.io` where the app-name and region are specific to the deployed app.
 - Dedicated Load Balancer: `custom url`.  See *Configuration* section to update settings.
 
+- CloudHub Private Space: https://{app-name}-{environment}.{private-space}.{region}.cloudhub.io
+
 The UI is protected by Basic Authentication, and the default credentials are listed in the *Configuration* section.
 
 # Configuration
-The properties below can be set on the app to override the default settings.  The proper ports must be set to accommodate load balancer and VPC firewall rule settings.  The default settings are for the CloudHub shared load balancer HTTP endpoint.
 
-- `user`: User name for login.  Defaults to `vpc-tools`
-- `pass`: Password for login.  Defaults to `SomePass`
-- `httpPort`: Sets the listener port for HTTP.  Defaults to `8081`
-- `httpsPort`: Sets the listener port for HTTPS.  Defaults to `8082`
-- `httpListener`: The running state of the HTTP endpoint flows.  Defaults to `started`.  Options: `started` or `stopped`.  Stop this to disable HTTP endpoint on CloudHub 1.0 or non-RTF infrastructure.  This doesn't affect RTF or CloudHub 2.0 because only a single HTTP port is used.
-- `ignoreFiles`: Comma-delimited list of browser-requested resource files for this app to ignore.  Defaults to `favicon.ico`.
+## Application Properties
+The properties below can be set on the app to override the default settings. The proper ports must be set to accommodate load balancer and VPC firewall rule settings. The default settings are for the CloudHub shared load balancer HTTP endpoint.
+
+| Property | Description | Default | Notes |
+|----------|-------------|---------|-------|
+| `user` | User name for login | `vpc-tools` | Used for Basic Auth |
+| `pass` | Password for login | `SomePass` | Used for Basic Auth |
+| `httpPort` | HTTP listener port | `8081` | Must differ from `httpsPort` |
+| `httpsPort` | HTTPS listener port | `8082` | Must differ from `httpPort` |
+| `httpListener` | HTTP endpoint state | `started` | Options: `started`/`stopped` |
+| `ignoreFiles` | Files to ignore | `favicon.ico` | Comma-delimited list |
+
+## API Endpoints
+
+All endpoints are available under the `/api` base path and require Basic Authentication.
+
+### Network Endpoints
+- `GET /api/dns?host={hostname}&dnsServer={optional_dns_server}`
+- `GET /api/ping?host={hostname}`
+- `GET /api/traceroute?host={hostname}`
+- `GET /api/socket?host={hostname}&port={port_number}`
+
+### HTTP/Curl Endpoints
+- `GET /api/curl?url={target_url}&header={optional_headers}&insecure={boolean}`
+- `POST /api/curl?url={target_url}&header={optional_headers}`
+
+### SSL/TLS Endpoints
+- `GET /api/certest?host={hostname}&port={port_number}`
+- `GET /api/ciphertest?host={hostname}&port={port_number}`
 
 ## Network Considerations
 
-- `httpsPort` and `httpPort` **must always** be different numbers, even if `httpListener=stopped`.  This is because both HTTP and HTTPS listener configurations are always created, even if the HTTP endpoint is not enabled.
-- CloudHub 2.0 and RTF only use a single port for the HTTP listener.  This means you can only run either HTTP or HTTPS, but not both at the same time.  Make sure the property you want to use is set to the proper port and the other is set to another unused port.
-- When using CloudHub 2.0 and RTF, you must enable *Last-Mile Security* in the app's Ingress tab if you want to use HTTPS.
-- This does not use `http.port` and `https.port` properties since those are overrriden on Cloudhub 2.0 and RTF to the same port and will prevent the app from starting because of a port conflict.
+### Port Configuration
+- `httpsPort` and `httpPort` **must always** be different numbers, even if `httpListener=stopped`
+  - Both HTTP and HTTPS listener configurations are created at startup
+  - Using same port numbers will cause startup failures
+- CloudHub 2.0 and RTF specific:
+  - Only supports single port for HTTP listener
+  - Can run either HTTP or HTTPS, not both simultaneously
+  - Set unused protocol's port to a different number
+  - Enable *Last-Mile Security* in app's Ingress tab for HTTPS
+- Does not use standard `http.port`/`https.port` properties
+  - These are overridden in CloudHub 2.0/RTF
+  - Would cause port conflicts due to same-port assignment
+
+### Deployment Guidelines
+1. **CloudHub 1.0**:
+   - Supports both HTTP/HTTPS simultaneously
+   - Use default ports if behind shared load balancer
+   - Configure custom ports for dedicated load balancer
+
+2. **CloudHub 2.0/RTF**:
+   - Choose either HTTP or HTTPS
+   - Configure single port properly
+   - Enable Last-Mile Security for HTTPS
+   - Set unused protocol's port to different number
+
+3. **General**:
+   - Verify VPC firewall rules allow chosen ports
+   - Ensure load balancer configuration matches ports
+   - Test connectivity after deployment
+
+## Development
+
+### Building the Project
+```bash
+mvn clean package
+```
+
+### Running Tests
+```bash
+mvn test
+```
+
+### Project Structure
+```
+src/
+├── main/
+│   ├── java/          # Java network utility implementations
+│   ├── mule/          # Mule configuration files
+│   └── resources/
+│       ├── api/       # RAML API definition
+│       ├── dwl/       # DataWeave transformations
+│       ├── schemas/   # JSON validation schemas
+│       └── web/       # Static web UI assets
+└── test/
+    ├── munit/        # MUnit test suites
+    └── resources/    # Test resources and mock data
+```
 
 # References
 - [CloudHub 2.0 Infrastructure Considerations](https://docs.mulesoft.com/cloudhub-2/ch2-comparison#infrastructure-considerations)
@@ -52,8 +148,8 @@ The properties below can be set on the app to override the default settings.  Th
 
 # Maintenance
 This uses the JS libraries below.
-- jQuery 1.12.4 [min](https://code.jquery.com/jquery-1.12.4.min.js) and [map](https://code.jquery.com/jquery-1.12.4.min.map).
-- [Toastr](https://github.com/CodeSeven/toastr) 2.1.4 [min, map, and css](https://cdnjs.com/libraries/toastr.js).
+- jQuery 1.12.4 [min](https://code.jquery.com/jquery-1.12.4.min.js) and [map](https://code.jquery.com/jquery-1.12.4.min.map)
+- [Toastr](https://github.com/CodeSeven/toastr) 2.1.4 [min, map, and css](https://cdnjs.com/libraries/toastr.js)
 
 # Contributors
 
