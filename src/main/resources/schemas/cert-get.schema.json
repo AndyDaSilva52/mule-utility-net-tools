@@ -4,7 +4,7 @@
   "description": "JSON schema for validating the headers and query parameters of a GET request to /certest",
   "type": "object",
   "properties": {
-    "queryParameters": {
+    "queryParams": {
       "type": "object",
       "properties": {
         "host": {
@@ -13,7 +13,7 @@
         },
         "port": {
           "description": "The port number of host to be tested",
-          "type": "number"
+          "type": "string"
         }
       },
       "required": [
@@ -29,6 +29,6 @@
     }
   },
   "required": [
-    "queryParameters"
+    "queryParams"
   ]
 }

@@ -5,8 +5,7 @@
   xmlns="http://www.mulesoft.org/schema/mule/core"
   xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="
-	http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+  xsi:schemaLocation="http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
 
   <flow
     name="http-ui"
@@ -22,22 +21,24 @@
   </flow>
 
   <flow
-    name="http-net-tools-main"
+    name="http-main"
     initialState="${httpListener}">
     <http:listener
+      doc:name="HTTP /*"
       config-ref="http"
       path="/api/*">
       <http:response statusCode="#[vars.httpStatus default 200]">
-        <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+        <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
       </http:response>
       <http:error-response statusCode="#[vars.httpStatus default 500]">
-        <http:body>#[payload]</http:body>
-        <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+        <http:body><![CDATA[#[payload]]]></http:body>
+        <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
       </http:error-response>
     </http:listener>
     <flow-ref
       doc:name="net-tools-main"
       name="net-tools-main" />
+    <error-handler ref="error.handler" />
   </flow>
 
 </mule>

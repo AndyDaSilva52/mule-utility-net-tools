@@ -1,23 +1,24 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "DNS GET Request",
-  "description": "JSON schema for validating the headers and query parameters of a GET request to /dns",
+  "title": "Cipher Test GET Request",
+  "description": "JSON schema for validating the headers and query parameters of a GET request to /ciphertest",
   "type": "object",
   "properties": {
     "queryParams": {
       "type": "object",
       "properties": {
         "host": {
-          "description": "The the fully qualified domain name the host to test",
+          "description": "The domain or ip of the host to connect to",
           "type": "string"
         },
-        "dnsServer": {
-          "description": "The DNS server to use for resolution.",
+        "port": {
+          "description": "The port number of host to be tested",
           "type": "string"
         }
       },
       "required": [
-        "host"
+        "host",
+        "port"
       ]
     },
     "headers": {

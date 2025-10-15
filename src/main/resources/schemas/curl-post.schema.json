@@ -4,7 +4,7 @@
   "description": "JSON schema for validating the headers and query parameters of a POST request to /curl. Note: This does not validate the text/plain body.",
   "type": "object",
   "properties": {
-    "queryParameters": {
+    "queryParams": {
       "type": "object",
       "properties": {
         "url": {
@@ -30,7 +30,7 @@
     }
   },
   "required": [
-    "queryParameters"
+    "queryParams"
   ]
 }
 

@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://json-schema.org/draft-07/schema#",
+  "title": "Socket GET Request",
+  "description": "JSON schema for validating the headers and query parameters of a GET request to /ping",
+  "type": "object",
+  "properties": {
+    "queryParams": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "description": "The domain or ip of the host to be tested",
+          "type": "string"
+        }
+      },
+      "required": [
+        "host"
+      ]
+    }
+  }
+}
+

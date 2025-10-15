@@ -1,132 +1,781 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <mule
-  xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-  xmlns:http="http://www.mulesoft.org/schema/mule/http"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
   xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
   xmlns="http://www.mulesoft.org/schema/mule/core"
   xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+  xmlns:http="http://www.mulesoft.org/schema/mule/http"
   xsi:schemaLocation="
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
 		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
 		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+		http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
   <munit:config name="http-test-suite.xml" />
 
-
-  <munit:dynamic-port
-    propertyName="munit.dynamic.port"
-    min="6000"
-    max="7000" />
-
-  <http:listener-config name="MUnit_HTTP_Mock_Listener_config">
-    <http:listener-connection
-      host="localhost"
-      port="${munit.dynamic.port}" />
-  </http:listener-config>
-
-  <http:request-config name="MUnit_HTTP_Mock_Request_configuration">
+  <http:request-config
+    name="MUnit_HTTP_Request_configuration"
+    basePath="/">
     <http:request-connection
       host="localhost"
-      port="${munit.dynamic.port}" />
+      port="${httpPort}">
+      <http:authentication>
+        <http:basic-authentication
+          username="${user}"
+          password="${pass}" />
+      </http:authentication>
+    </http:request-connection>
   </http:request-config>
 
-
-
-  <flow name="http-test-suite.mock-http-error.listener">
-    <http:listener
-      config-ref="MUnit_HTTP_Mock_Listener_config"
-      path="/*">
-      <http:response
-        statusCode="#[(attributes.queryParams.statusCode default attributes.queryParams.httpStatus) default 200]"
-        reasonPhrase="#[attributes.queryParams.reasonPhrase]">
-        <http:headers><![CDATA[#[attributes.headers]]]></http:headers>
-      </http:response>
-      <http:error-response
-        statusCode="#[(attributes.queryParams.statusCode default attributes.queryParams.httpStatus) default 500]"
-        reasonPhrase="#[attributes.queryParams.reasonPhrase]">
-        <http:body><![CDATA[#[payload]]]></http:body>
-        <http:headers><![CDATA[#[attributes.headers]]]></http:headers>
-      </http:error-response>
-    </http:listener>
-
-    <logger
-      level="TRACE"
-      doc:name="doc: Listener Response will Return the payload/headers/http status for the respective request that was made to mock" />
-  </flow>
-
-  <flow name="http-test-suite.mock-http-error.request">
-    <try>
-      <http:request
-        config-ref="MUnit_HTTP_Mock_Request_configuration"
-        method="#[vars.munitHttp.method default 'GET']"
-        path="#[vars.munitHttp.path default '/']"
-        sendBodyMode="ALWAYS">
-        <http:body><![CDATA[#[vars.munitBody]]]></http:body>
-        <http:headers><![CDATA[#[vars.munitHttp.headers default {}]]]></http:headers>
-        <http:query-params><![CDATA[#[vars.munitHttp.queryParams default {}]]]></http:query-params>
-      </http:request>
-      <error-handler>
-        <on-error-propagate>
-          <remove-variable
-            doc:name="munitHttp"
-            variableName="munitHttp" />
-          <remove-variable
-            doc:name="munitBody"
-            variableName="munitBody" />
-        </on-error-propagate>
-      </error-handler>
-    </try>
-
-    <remove-variable
-      doc:name="munitHttp"
-      variableName="munitHttp" />
-    <remove-variable
-      doc:name="munitBody"
-      variableName="munitBody" />
-  </flow>
-  <flow name="http-test-suite.mock-http-error.template-for-then-call">
-    <ee:transform doc:name="munitHttp/java ; munitBody/json;">
-      <ee:message>
-      </ee:message>
-      <ee:variables>
-        <ee:set-variable variableName="munitHttp"><![CDATA[%dw 2.0
-output application/java
+  <munit:test
+    name="get-ping-test"
+    doc:id="a1b2c3d4-e5f6-a7b8-c9d0-e1f2a3b4c5d6"
+    description="Test for GET /ping">
+    <munit:enable-flow-sources>
+      <munit:enable-flow-source value="http-main" />
+      <munit:enable-flow-source value="net-tools-main" />
+      <munit:enable-flow-source value="get.\ping.net-tools-config" />
+    </munit:enable-flow-sources>
+    <munit:behavior>
+      <munit-tools:spy
+        doc:name="Spy vars.flowRef {name, schema } ; basePath; File=dwl/..."
+        doc:id="200fde92-46f5-419a-9dc5-0c8c98da9450"
+        processor="ee:transform">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="8d656153-10cb-43e0-9468-b4a49fbc3669"
+            attributeName="doc:id" />
+        </munit-tools:with-attributes>
+        <munit-tools:after-call>
+          <munit-tools:assert
+            doc:name="Assert variables"
+            doc:id="f4f57e2b-52dc-46f0-986f-2b6a07d59247"
+            message="The variables do not match">
+            <munit-tools:that><![CDATA[#[%dw 2.0
+import net_tools_main_get_ping_test::spy_assert_variables
 ---
-{
-}]]></ee:set-variable>
-        <ee:set-variable variableName="munitBody"><![CDATA[%dw 2.0
-output application/java
----
-{
-}]]></ee:set-variable>
-      </ee:variables>
-    </ee:transform>
-    <flow-ref
-      doc:name="FlowRef Mock HTTP Error Request"
-      name="http-test-suite.mock-http-error.request" />
-  </flow>
-  <!-- -->
-  <!-- -->
-  <!-- -->
-  <munit:test name="http-test-suite.get:\curl:net-tools-config">
+spy_assert_variables::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+          </munit-tools:assert>
+        </munit-tools:after-call>
+      </munit-tools:spy>
+      <munit-tools:mock-when
+        doc:name="Set Payload NetworkUtils::ping"
+        doc:id="ab5b5a40-ece1-4f2e-a53f-ee526120ff18"
+        processor="set-payload">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="NetworkUtils::ping"
+            attributeName="doc:name" />
+        </munit-tools:with-attributes>
+      </munit-tools:mock-when>
+    </munit:behavior>
     <munit:execution>
-      <http:request
-        method="GET"
-        doc:name="Request"
-        doc:id="d3df80e0-e251-4384-af64-6c19b16fc9d8"
-        config-ref="MUnit_HTTP_Request_configuration"
-        path="/curl">
-        <http:query-params><![CDATA[#[{
-	url: "localhost",
-	header: [
-		
-	]
+      <try
+        doc:name="Try"
+        doc:id="cd3a04dd-1d70-40b8-b6bb-396015e17402">
+        <http:request
+          method="GET"
+          doc:name="Request /api/ping"
+          config-ref="MUnit_HTTP_Request_configuration"
+          path="/api/ping">
+          <http:query-params><![CDATA[#[{
+	"host": "localhost"
 }]]]></http:query-params>
-      </http:request>
+        </http:request>
+        <error-handler>
+          <on-error-propagate
+            enableNotifications="false"
+            logException="false"
+            doc:name="On Error Propagate"
+            doc:id="fe18b377-c710-4e37-9d18-559d55d01291">
+            <logger
+              level="INFO"
+              doc:name="INFO error.errorMessage"
+              doc:id="694ed2dc-422f-42b6-9e5b-17589d6f1fc8"
+              message="#[output application/json --- {description: error.description, errorMessage: error.errorMessage}]" />
+          </on-error-propagate>
+        </error-handler>
+      </try>
     </munit:execution>
+    <munit:validation>
+      <munit-tools:verify-call
+        doc:name="Validate attributes using \schemas\ping-get.schema.json"
+        doc:id="513e4bfd-087d-44f0-be5b-b3a35a7dc902"
+        processor="json:validate-schema">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="/schemas/ping-get.schema.json"
+            attributeName="schema" />
+        </munit-tools:with-attributes>
+      </munit-tools:verify-call>
+      <munit-tools:verify-call
+        doc:name="Set Payload NetworkUtils::ping"
+        doc:id="0d2c1681-28e3-40d5-9891-a97f98016dad"
+        processor="set-payload">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="NetworkUtils::ping"
+            attributeName="doc:name" />
+        </munit-tools:with-attributes>
+      </munit-tools:verify-call>
+    </munit:validation>
   </munit:test>
+
+  <munit:test
+    name="get-socket-test"
+    description="Test for GET /socket">
+    <munit:enable-flow-sources>
+      <munit:enable-flow-source value="http-main" />
+      <munit:enable-flow-source value="net-tools-main" />
+      <munit:enable-flow-source value="get.\socket.net-tools-config" />
+    </munit:enable-flow-sources>
+    <munit:behavior>
+      <munit-tools:spy
+        doc:name="Spy vars.flowRef {name, schema } ; basePath; File=dwl/..."
+        doc:id="200fde92-46f5-419a-9dc5-0c8c98da9450"
+        processor="ee:transform">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="8d656153-10cb-43e0-9468-b4a49fbc3669"
+            attributeName="doc:id" />
+        </munit-tools:with-attributes>
+        <munit-tools:after-call>
+          <munit-tools:assert
+            doc:name="Assert variables"
+            doc:id="f4f57e2b-52dc-46f0-986f-2b6a07d59247"
+            message="The variables do not match">
+            <munit-tools:that><![CDATA[#[%dw 2.0
+import net_tools_main_get_socket_test::spy_assert_variables
+---
+spy_assert_variables::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+          </munit-tools:assert>
+        </munit-tools:after-call>
+      </munit-tools:spy>
+      <munit-tools:mock-when
+        doc:name="Set Payload NetworkUtils::testConnect"
+        doc:id="ab5b5a40-ece1-4f2e-a53f-ee526120ff18"
+        processor="set-payload">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="NetworkUtils::testConnect"
+            attributeName="doc:name" />
+        </munit-tools:with-attributes>
+      </munit-tools:mock-when>
+    </munit:behavior>
+    <munit:execution>
+      <try
+        doc:name="Try"
+        doc:id="87ac7829-98b8-4cc1-a116-f63ba2500c7b">
+        <http:request
+          method="GET"
+          doc:name="Request /api/socket"
+          config-ref="MUnit_HTTP_Request_configuration"
+          path="/api/socket">
+          <http:query-params><![CDATA[#[{
+	"host": "localhost",
+	"port": 8081
+}]]]></http:query-params>
+        </http:request>
+        <error-handler>
+          <on-error-propagate
+            enableNotifications="false"
+            logException="false"
+            doc:name="On Error Propagate"
+            doc:id="d8b35944-4b88-47e6-8508-4238e91dbf56">
+            <logger
+              level="INFO"
+              doc:name="INFO error.errorMessage"
+              doc:id="d1bb8cdc-2789-41b8-963b-d0a014b95030"
+              message="#[output application/json --- {description: error.description, errorMessage: error.errorMessage}]" />
+          </on-error-propagate>
+        </error-handler>
+      </try>
+    </munit:execution>
+    <munit:validation>
+      <munit-tools:verify-call
+        doc:name="Validate attributes using \schemas\socket-get.schema.json"
+        doc:id="513e4bfd-087d-44f0-be5b-b3a35a7dc902"
+        processor="json:validate-schema">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="/schemas/socket-get.schema.json"
+            attributeName="schema" />
+        </munit-tools:with-attributes>
+      </munit-tools:verify-call>
+      <munit-tools:verify-call
+        doc:name="Set Payload NetworkUtils::testConnect"
+        doc:id="b1df2768-5f8f-4baa-af8c-bbb2616e30c1"
+        processor="set-payload">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="NetworkUtils::testConnect"
+            attributeName="doc:name" />
+        </munit-tools:with-attributes>
+      </munit-tools:verify-call>
+    </munit:validation>
+  </munit:test>
+
+  <munit:test
+    name="get-dns-test"
+    description="Test for GET /dns">
+    <munit:enable-flow-sources>
+      <munit:enable-flow-source value="http-main" />
+      <munit:enable-flow-source value="net-tools-main" />
+      <munit:enable-flow-source value="get.\dns.net-tools-config" />
+    </munit:enable-flow-sources>
+    <munit:behavior>
+      <munit-tools:spy
+        doc:name="Spy vars.flowRef {name, schema } ; basePath; File=dwl/..."
+        doc:id="200fde92-46f5-419a-9dc5-0c8c98da9450"
+        processor="ee:transform">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="8d656153-10cb-43e0-9468-b4a49fbc3669"
+            attributeName="doc:id" />
+        </munit-tools:with-attributes>
+        <munit-tools:after-call>
+          <munit-tools:assert
+            doc:name="Assert variables"
+            doc:id="f4f57e2b-52dc-46f0-986f-2b6a07d59247"
+            message="The variables do not match">
+            <munit-tools:that><![CDATA[#[%dw 2.0
+import net_tools_main_get_dns_test::spy_assert_variables
+---
+spy_assert_variables::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+          </munit-tools:assert>
+        </munit-tools:after-call>
+      </munit-tools:spy>
+      <munit-tools:mock-when
+        doc:name="Set Payload NetworkUtils::resolveIPs"
+        doc:id="ab5b5a40-ece1-4f2e-a53f-ee526120ff18"
+        processor="set-payload">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="NetworkUtils::resolveIPs"
+            attributeName="doc:name" />
+        </munit-tools:with-attributes>
+      </munit-tools:mock-when>
+    </munit:behavior>
+    <munit:execution>
+      <try
+        doc:name="Try"
+        doc:id="d6455d26-51df-4ba9-995f-23f46a347c9f">
+        <http:request
+          method="GET"
+          doc:name="Request /api/dns"
+          config-ref="MUnit_HTTP_Request_configuration"
+          path="/api/dns">
+          <http:query-params><![CDATA[#[{
+	"host": "mulesoft.com",
+	"dnsServer": "8.8.8.8"
+}]]]></http:query-params>
+        </http:request>
+        <error-handler>
+          <on-error-propagate
+            enableNotifications="false"
+            logException="false"
+            doc:name="On Error Propagate"
+            doc:id="731ac00f-8465-484e-80ed-eed1a68a35dc">
+            <logger
+              level="INFO"
+              doc:name="INFO error.errorMessage"
+              doc:id="72cfc04e-8048-4536-9cf2-5a520498aea5"
+              message="#[output application/json --- {description: error.description, errorMessage: error.errorMessage}]" />
+          </on-error-propagate>
+        </error-handler>
+      </try>
+    </munit:execution>
+    <munit:validation>
+      <munit-tools:verify-call
+        doc:name="Validate attributes using \schemas\dns-get.schema.json"
+        doc:id="513e4bfd-087d-44f0-be5b-b3a35a7dc902"
+        processor="json:validate-schema">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="/schemas/dns-get.schema.json"
+            attributeName="schema" />
+        </munit-tools:with-attributes>
+      </munit-tools:verify-call>
+      <munit-tools:verify-call
+        doc:name="Set Payload NetworkUtils::resolveIPs"
+        doc:id="d657218c-1cb3-4920-ba75-08efe5b9f09e"
+        processor="set-payload">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="NetworkUtils::resolveIPs"
+            attributeName="doc:name" />
+        </munit-tools:with-attributes>
+      </munit-tools:verify-call>
+    </munit:validation>
+  </munit:test>
+
+  <munit:test
+    name="get-certest-test"
+    description="Test for GET /certest">
+    <munit:enable-flow-sources>
+      <munit:enable-flow-source value="http-main" />
+      <munit:enable-flow-source value="net-tools-main" />
+      <munit:enable-flow-source value="get.\certest.net-tools-config" />
+    </munit:enable-flow-sources>
+    <munit:behavior>
+      <munit-tools:spy
+        doc:name="Spy vars.flowRef {name, schema } ; basePath; File=dwl/..."
+        doc:id="200fde92-46f5-419a-9dc5-0c8c98da9450"
+        processor="ee:transform">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="8d656153-10cb-43e0-9468-b4a49fbc3669"
+            attributeName="doc:id" />
+        </munit-tools:with-attributes>
+        <munit-tools:after-call>
+          <munit-tools:assert
+            doc:name="Assert variables"
+            doc:id="f4f57e2b-52dc-46f0-986f-2b6a07d59247"
+            message="The variables do not match">
+            <munit-tools:that><![CDATA[#[%dw 2.0
+import net_tools_main_get_certest_test::spy_assert_variables
+---
+spy_assert_variables::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+          </munit-tools:assert>
+        </munit-tools:after-call>
+      </munit-tools:spy>
+      <munit-tools:mock-when
+        doc:name="Set Payload NetworkUtils::certest"
+        doc:id="ab5b5a40-ece1-4f2e-a53f-ee526120ff18"
+        processor="set-payload">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="NetworkUtils::certest"
+            attributeName="doc:name" />
+        </munit-tools:with-attributes>
+      </munit-tools:mock-when>
+    </munit:behavior>
+    <munit:execution>
+      <try
+        doc:name="Try"
+        doc:id="a46f4b38-ee97-46f3-814e-574e706d6e77">
+        <http:request
+          method="GET"
+          doc:name="Request /api/certest"
+          config-ref="MUnit_HTTP_Request_configuration"
+          path="/api/certest">
+          <http:query-params><![CDATA[#[{
+	"host": "localhost",
+	"port": 443
+}]]]></http:query-params>
+        </http:request>
+        <error-handler>
+          <on-error-propagate
+            enableNotifications="false"
+            logException="false"
+            doc:name="On Error Propagate"
+            doc:id="04e92594-20a6-4bf6-b61b-a4f9ab0c7b24">
+            <logger
+              level="INFO"
+              doc:name="INFO error.errorMessage"
+              doc:id="de8c44ec-a4b2-4c7a-ba2a-7156858c6277"
+              message="#[output application/json --- {description: error.description, errorMessage: error.errorMessage}]" />
+          </on-error-propagate>
+        </error-handler>
+      </try>
+    </munit:execution>
+    <munit:validation>
+      <munit-tools:verify-call
+        doc:name="Validate attributes using \schemas\certest-get.schema.json"
+        doc:id="513e4bfd-087d-44f0-be5b-b3a35a7dc902"
+        processor="json:validate-schema">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="/schemas/certest-get.schema.json"
+            attributeName="schema" />
+        </munit-tools:with-attributes>
+      </munit-tools:verify-call>
+      <munit-tools:verify-call
+        doc:name="Set Payload NetworkUtils::certest"
+        doc:id="52a4c0a6-9bdb-42c9-8e5e-f15e46bd23e9"
+        processor="set-payload">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="NetworkUtils::certest"
+            attributeName="doc:name" />
+        </munit-tools:with-attributes>
+      </munit-tools:verify-call>
+    </munit:validation>
+  </munit:test>
+
+  <munit:test
+    name="get-ciphertest-test"
+    description="Test for GET /ciphertest">
+    <munit:enable-flow-sources>
+      <munit:enable-flow-source value="http-main" />
+      <munit:enable-flow-source value="net-tools-main" />
+      <munit:enable-flow-source value="get.\ciphertest.net-tools-config" />
+    </munit:enable-flow-sources>
+    <munit:behavior>
+      <munit-tools:spy
+        doc:name="Spy vars.flowRef {name, schema } ; basePath; File=dwl/..."
+        doc:id="200fde92-46f5-419a-9dc5-0c8c98da9450"
+        processor="ee:transform">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="8d656153-10cb-43e0-9468-b4a49fbc3669"
+            attributeName="doc:id" />
+        </munit-tools:with-attributes>
+        <munit-tools:after-call>
+          <munit-tools:assert
+            doc:name="Assert variables"
+            doc:id="f4f57e2b-52dc-46f0-986f-2b6a07d59247"
+            message="The variables do not match">
+            <munit-tools:that><![CDATA[#[%dw 2.0
+import net_tools_main_get_ciphertest_test::spy_assert_variables
+---
+spy_assert_variables::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+          </munit-tools:assert>
+        </munit-tools:after-call>
+      </munit-tools:spy>
+      <munit-tools:mock-when
+        doc:name="Set Payload NetworkUtils::cipherTest"
+        doc:id="ab5b5a40-ece1-4f2e-a53f-ee526120ff18"
+        processor="set-payload">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="NetworkUtils::cipherTest"
+            attributeName="doc:name" />
+        </munit-tools:with-attributes>
+      </munit-tools:mock-when>
+    </munit:behavior>
+    <munit:execution>
+      <try
+        doc:name="Try"
+        doc:id="a94b060a-bb06-4bbc-904d-ec6b6068dce9">
+        <http:request
+          method="GET"
+          doc:name="Request /api/ciphertest"
+          config-ref="MUnit_HTTP_Request_configuration"
+          path="/api/ciphertest">
+          <http:query-params><![CDATA[#[{
+	"host": "localhost",
+	"port": 443
+}]]]></http:query-params>
+        </http:request>
+        <error-handler>
+          <on-error-propagate
+            enableNotifications="false"
+            logException="false"
+            doc:name="On Error Propagate"
+            doc:id="4b532d4e-d5c9-43d3-bf28-ab2004d7e60d">
+            <logger
+              level="INFO"
+              doc:name="INFO error.errorMessage"
+              doc:id="d8faa1ff-055b-45e9-a254-740a5d5dc059"
+              message="#[output application/json --- {description: error.description, errorMessage: error.errorMessage}]" />
+          </on-error-propagate>
+        </error-handler>
+      </try>
+    </munit:execution>
+    <munit:validation>
+      <munit-tools:verify-call
+        doc:name="Validate attributes using \schemas\ciphertest-get.schema.json"
+        doc:id="513e4bfd-087d-44f0-be5b-b3a35a7dc902"
+        processor="json:validate-schema">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="/schemas/ciphertest-get.schema.json"
+            attributeName="schema" />
+        </munit-tools:with-attributes>
+      </munit-tools:verify-call>
+      <munit-tools:verify-call
+        doc:name="Set Payload NetworkUtils::cipherTest"
+        doc:id="213e77cd-40f0-492c-888f-d49cfb2af2e7"
+        processor="set-payload">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="NetworkUtils::cipherTest"
+            attributeName="doc:name" />
+        </munit-tools:with-attributes>
+      </munit-tools:verify-call>
+    </munit:validation>
+  </munit:test>
+
+  <munit:test
+    name="get-traceroute-test"
+    description="Test for GET /traceroute">
+    <munit:enable-flow-sources>
+      <munit:enable-flow-source value="http-main" />
+      <munit:enable-flow-source value="net-tools-main" />
+      <munit:enable-flow-source value="get.\traceroute.net-tools-config" />
+    </munit:enable-flow-sources>
+    <munit:behavior>
+      <munit-tools:spy
+        doc:name="Spy vars.flowRef {name, schema } ; basePath; File=dwl/..."
+        doc:id="200fde92-46f5-419a-9dc5-0c8c98da9450"
+        processor="ee:transform">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="8d656153-10cb-43e0-9468-b4a49fbc3669"
+            attributeName="doc:id" />
+        </munit-tools:with-attributes>
+        <munit-tools:after-call>
+          <munit-tools:assert
+            doc:name="Assert variables"
+            doc:id="f4f57e2b-52dc-46f0-986f-2b6a07d59247"
+            message="The variables do not match">
+            <munit-tools:that><![CDATA[#[%dw 2.0
+import net_tools_main_get_traceroute_test::spy_assert_variables
+---
+spy_assert_variables::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+          </munit-tools:assert>
+        </munit-tools:after-call>
+      </munit-tools:spy>
+      <munit-tools:mock-when
+        doc:name="Set Payload NetworkUtils::traceRoute"
+        doc:id="ab5b5a40-ece1-4f2e-a53f-ee526120ff18"
+        processor="set-payload">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="NetworkUtils::traceRoute"
+            attributeName="doc:name" />
+        </munit-tools:with-attributes>
+      </munit-tools:mock-when>
+    </munit:behavior>
+    <munit:execution>
+      <try
+        doc:name="Try"
+        doc:id="1c297c0c-a07a-4dc9-9bf1-f16baadbdcfb">
+        <http:request
+          method="GET"
+          doc:name="Request /api/traceroute"
+          config-ref="MUnit_HTTP_Request_configuration"
+          path="/api/traceroute">
+          <http:query-params><![CDATA[#[{
+	"host": "localhost"
+}]]]></http:query-params>
+        </http:request>
+        <error-handler>
+          <on-error-propagate
+            enableNotifications="false"
+            logException="false"
+            doc:name="On Error Propagate"
+            doc:id="21064606-c420-488e-8dba-66d01cf2019c">
+            <logger
+              level="INFO"
+              doc:name="INFO error.errorMessage"
+              doc:id="e98b7fd4-64bf-4f84-a582-ed1893cac073"
+              message="#[output application/json --- {description: error.description, errorMessage: error.errorMessage}]" />
+          </on-error-propagate>
+        </error-handler>
+      </try>
+    </munit:execution>
+    <munit:validation>
+      <munit-tools:verify-call
+        doc:name="Validate attributes using \schemas\traceroute-get.schema.json"
+        doc:id="513e4bfd-087d-44f0-be5b-b3a35a7dc902"
+        processor="json:validate-schema">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="/schemas/traceroute-get.schema.json"
+            attributeName="schema" />
+        </munit-tools:with-attributes>
+      </munit-tools:verify-call>
+      <munit-tools:verify-call
+        doc:name="Set Payload NetworkUtils::traceRoute"
+        doc:id="4d3edacf-c67a-47d9-95c7-7755f3da5864"
+        processor="set-payload">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="NetworkUtils::traceRoute"
+            attributeName="doc:name" />
+        </munit-tools:with-attributes>
+      </munit-tools:verify-call>
+    </munit:validation>
+  </munit:test>
+
+  <munit:test
+    name="get-curl-test"
+    description="Test for GET /curl">
+    <munit:enable-flow-sources>
+      <munit:enable-flow-source value="http-main" />
+      <munit:enable-flow-source value="net-tools-main" />
+      <munit:enable-flow-source value="get.\curl.net-tools-config" />
+    </munit:enable-flow-sources>
+    <munit:behavior>
+      <munit-tools:spy
+        doc:name="Spy vars.flowRef {name, schema } ; basePath; File=dwl/..."
+        doc:id="200fde92-46f5-419a-9dc5-0c8c98da9450"
+        processor="ee:transform">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="8d656153-10cb-43e0-9468-b4a49fbc3669"
+            attributeName="doc:id" />
+        </munit-tools:with-attributes>
+        <munit-tools:after-call>
+          <munit-tools:assert
+            doc:name="Assert variables"
+            doc:id="f4f57e2b-52dc-46f0-986f-2b6a07d59247"
+            message="The variables do not match">
+            <munit-tools:that><![CDATA[#[%dw 2.0
+import net_tools_main_get_curl_test::spy_assert_variables
+---
+spy_assert_variables::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+          </munit-tools:assert>
+        </munit-tools:after-call>
+      </munit-tools:spy>
+      <munit-tools:mock-when
+        doc:name="Set Payload NetworkUtils::curl"
+        doc:id="ab5b5a40-ece1-4f2e-a53f-ee526120ff18"
+        processor="set-payload">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="NetworkUtils::curl"
+            attributeName="doc:name" />
+        </munit-tools:with-attributes>
+      </munit-tools:mock-when>
+    </munit:behavior>
+    <munit:execution>
+      <try
+        doc:name="Try"
+        doc:id="e314e175-9c61-43c1-82e6-fd0b52a98ab3">
+        <http:request
+          method="GET"
+          doc:name="Request /api/curl"
+          config-ref="MUnit_HTTP_Request_configuration"
+          path="/api/curl">
+          <http:query-params><![CDATA[#[{
+  "url": "localhost"
+}]]]></http:query-params>
+        </http:request>
+        <error-handler>
+          <on-error-propagate
+            enableNotifications="false"
+            logException="false"
+            doc:name="On Error Propagate"
+            doc:id="ca59fb3b-938a-4e03-a969-817c97999a47">
+            <logger
+              level="INFO"
+              doc:name="INFO error.errorMessage"
+              doc:id="d491d4ad-b0ae-4e62-a1b7-e7502c01a98e"
+              message="#[output application/json --- {description: error.description, errorMessage: error.errorMessage}]" />
+          </on-error-propagate>
+        </error-handler>
+      </try>
+    </munit:execution>
+    <munit:validation>
+      <munit-tools:verify-call
+        doc:name="Validate attributes using \schemas\curl-get.schema.json"
+        doc:id="513e4bfd-087d-44f0-be5b-b3a35a7dc902"
+        processor="json:validate-schema">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="/schemas/curl-get.schema.json"
+            attributeName="schema" />
+        </munit-tools:with-attributes>
+      </munit-tools:verify-call>
+      <munit-tools:verify-call
+        doc:name="Set Payload NetworkUtils::curl"
+        doc:id="4d3edacf-c67a-47d9-95c7-7755f3da5864"
+        processor="set-payload">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="NetworkUtils::curl"
+            attributeName="doc:name" />
+        </munit-tools:with-attributes>
+      </munit-tools:verify-call>
+    </munit:validation>
+  </munit:test>
+
+  <munit:test
+    name="post-curl-test"
+    description="Test for GET /curl">
+    <munit:enable-flow-sources>
+      <munit:enable-flow-source value="http-main" />
+      <munit:enable-flow-source value="net-tools-main" />
+      <munit:enable-flow-source value="post.\curl.text\plain.net-tools-config" />
+    </munit:enable-flow-sources>
+    <munit:behavior>
+      <munit-tools:spy
+        doc:name="Spy vars.flowRef {name, schema } ; basePath; File=dwl/..."
+        doc:id="200fde92-46f5-419a-9dc5-0c8c98da9450"
+        processor="ee:transform">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="8d656153-10cb-43e0-9468-b4a49fbc3669"
+            attributeName="doc:id" />
+        </munit-tools:with-attributes>
+        <munit-tools:after-call>
+          <munit-tools:assert
+            doc:name="Assert variables"
+            doc:id="f4f57e2b-52dc-46f0-986f-2b6a07d59247"
+            message="The variables do not match">
+            <munit-tools:that><![CDATA[#[%dw 2.0
+import net_tools_main_post_curl_test::spy_assert_variables
+---
+spy_assert_variables::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+          </munit-tools:assert>
+        </munit-tools:after-call>
+      </munit-tools:spy>
+      <munit-tools:mock-when
+        doc:name="Set Payload NetworkUtils::curl"
+        doc:id="ab5b5a40-ece1-4f2e-a53f-ee526120ff18"
+        processor="set-payload">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="NetworkUtils::curl"
+            attributeName="doc:name" />
+        </munit-tools:with-attributes>
+      </munit-tools:mock-when>
+    </munit:behavior>
+    <munit:execution>
+      <try
+        doc:name="Try"
+        doc:id="f3f93903-b829-4232-b29b-25ec29c4b858">
+        <http:request
+          method="POST"
+          doc:name="Request /api/curl"
+          config-ref="MUnit_HTTP_Request_configuration"
+          path="/api/curl">
+          <http:body><![CDATA[#[output text/plain --- ""]]]></http:body>
+          <http:query-params><![CDATA[#[{
+  "url": "localhost"
+}]]]></http:query-params>
+        </http:request>
+        <error-handler>
+          <on-error-propagate
+            enableNotifications="false"
+            logException="false"
+            doc:name="On Error Propagate"
+            doc:id="1bdb31ce-6c73-4498-8422-9dedae3ed375">
+            <logger
+              level="INFO"
+              doc:name="INFO error.errorMessage"
+              doc:id="cca89797-9154-4b61-8448-66a437ab7c1a"
+              message="#[output application/json --- {description: error.description, errorMessage: error.errorMessage}]" />
+          </on-error-propagate>
+        </error-handler>
+      </try>
+    </munit:execution>
+    <munit:validation>
+      <munit-tools:verify-call
+        doc:name="Validate attributes using \schemas\curl-post.schema.json"
+        doc:id="513e4bfd-087d-44f0-be5b-b3a35a7dc902"
+        processor="json:validate-schema">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="/schemas/curl-post.schema.json"
+            attributeName="schema" />
+        </munit-tools:with-attributes>
+      </munit-tools:verify-call>
+      <munit-tools:verify-call
+        doc:name="Set Payload NetworkUtils::curl"
+        doc:id="4d3edacf-c67a-47d9-95c7-7755f3da5864"
+        processor="set-payload">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute
+            whereValue="NetworkUtils::curl"
+            attributeName="doc:name" />
+        </munit-tools:with-attributes>
+      </munit-tools:verify-call>
+    </munit:validation>
+  </munit:test>
+
 </mule>

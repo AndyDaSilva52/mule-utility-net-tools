@@ -170,11 +170,11 @@
               </div>
       </form>
       <div>
-              <div class="helpBox" id="pingHelp">Set an IP Address or Hostname and hit Run. <br/>Note: Ping works using ICMP protocol and requires OS permissions (not available on CH2, use Socket). If it has been disabled, the ping will not receive any response.</div>
-        <div class="helpBox" id="tracerouteHelp" style="display: none;">Set an IP Address or Hostname and hit Run</div>
-              <div class="helpBox" id="socketHelp" style="display: none;">Set an IP Address or Hostname, the Port and hit Run</div>
-        <div class="helpBox" id="dnsHelp" style="display: none;">Set a Hostname and hit Run</div>
-        <div class="helpBox" id="curlHelp" style="display: none;">Set an IP Address or Schema (http-https://) plus Hostname, the Port, the Path, the Headers (multi-line) and hit Run</div>
+          <div class="helpBox" id="pingHelp">Set an IP Address or Hostname and hit Run. <br/>Note: Ping works using ICMP protocol and requires OS permissions (not available on CH2, use Socket). If it has been disabled, the ping will not receive any response.</div>
+          <div class="helpBox" id="tracerouteHelp" style="display: none;">Set an IP Address or Hostname and hit Run</div>
+          <div class="helpBox" id="socketHelp" style="display: none;">Set an IP Address or Hostname, the Port and hit Run</div>
+          <div class="helpBox" id="dnsHelp" style="display: none;">Set a Hostname and hit Run</div>
+          <div class="helpBox" id="curlHelp" style="display: none;">Set an IP Address or Schema (http-https://) plus Hostname, the Port, the Path, the Headers (multi-line) and hit Run</div>
       </div>
             <pre id="output">
             </pre>
@@ -287,7 +287,7 @@
                     var body = null;
                     var url = (operation === 'curl') ? $("#url").val() : '';
                     var port = (operation === 'socket' || operation === 'certest' || operation === 'ciphertest') ? $("#port").val() : '';
-                    var dnsServer = (operation === 'dns') ? $("#dnsServer").val() : '';                    
+                    var dnsServer = (operation === 'dns') ? $("#dnsServer").val() : '';
                     if (operation !== 'curl' && !ip) {
                         toastr["error"]("Missing IP", "Invalid Arguments")
                         console.error("Missing IP!");
@@ -344,7 +344,7 @@
                         $("#check").attr("disabled", false);
                     });
                 });
-                $("#operation").val("ping").change();
+                $("#operation").val("socket").change();
             });
         </script>
     </body>
