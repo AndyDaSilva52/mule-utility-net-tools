@@ -21,6 +21,6 @@ target
 bin/
 .mule
 target/*
-.vscode/
+#.vscode/
 
 .tooling-project
